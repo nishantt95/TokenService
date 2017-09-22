@@ -51,11 +51,11 @@ public class JWTLoginFilter extends AbstractAuthenticationProcessingFilter {
         TokenAuthenticationService.addAuthentication(res, auth.getName());
     }
 
-    public AccountCredentials getCredentialsFromHeader(HttpServletRequest request) {
+    private AccountCredentials getCredentialsFromHeader(HttpServletRequest request) {
         String authorization = request.getHeader(TokenAuthenticationService.HEADER_STRING);
 
-        if (authorization != null) {
-            String base64Credentials = authorization.trim();
+        if (authorization != null && authorization.startsWith("Basic")) {
+            String base64Credentials = authorization.substring("Basic".length()).trim();
             String credentials = new String(Base64.getDecoder().decode(base64Credentials), Charset.forName("UTF-8"));
             String values[] = credentials.split(":", 2);
 
