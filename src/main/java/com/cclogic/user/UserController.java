@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.charset.Charset;
+import java.util.Base64;
 import java.util.List;
 
 import static com.cclogic.security.TokenAuthenticationService.HEADER_STRING;
@@ -26,7 +28,21 @@ public class UserController {
         return new CustomResponse("Test Successful!").getResponse();
     }
 
-    @RequestMapping(value = "/users", method = RequestMethod.GET)
+    @RequestMapping("/token/test")
+    public String testIdGenerator(){
+        String creds = "b@b.com:password";
+        String credentials = new String(Base64.getEncoder().encode(creds.getBytes()), Charset.forName("UTF-8"));
+        System.out.println("Dummy Header -> "+credentials);
+        return credentials;
+    }
+
+    /* @RequestMapping(value = "/token", method = RequestMethod.GET)
+    public String generateToken(@RequestHeader HttpHeaders headers){
+        headers.get(HEADER_STRING);
+        return "<TESTING>";
+    }*/
+
+    /*@RequestMapping(value = "/users", method = RequestMethod.GET)
     public List<User> getUsers() {
         return userService.getUsers();
     }
@@ -58,6 +74,6 @@ public class UserController {
     public List<User> getUsersByField(@RequestParam(value = "by", required = true) String field,
                                       @RequestParam(value = "val", required = true) String emailId) {
         return userService.getUserByField(field, emailId);
-    }
+    }*/
 
 }
