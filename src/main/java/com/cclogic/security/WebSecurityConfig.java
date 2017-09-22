@@ -1,6 +1,6 @@
 package com.cclogic.security;
 
-import com.cclogic.user.UserService;
+import com.cclogic.user.UsersService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -21,7 +21,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    private UserService userService;
+    private UsersService userService;
 
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -34,8 +34,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.csrf().disable().authorizeRequests()
                 .antMatchers("/").permitAll()
                 .antMatchers(HttpMethod.GET, "/token").permitAll()
+                .antMatchers(HttpMethod.GET, "/allUsers").permitAll()
                 .antMatchers(HttpMethod.GET, "/token/test").permitAll()
-                .antMatchers(HttpMethod.POST,"/users").permitAll()
                 .antMatchers("/v2/api-docs").permitAll()
                 /*.antMatchers("/swagger-ui.html").permitAll()*/
                 .antMatchers("/swagger**").permitAll()

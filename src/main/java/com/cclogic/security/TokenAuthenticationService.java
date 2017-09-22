@@ -5,16 +5,15 @@ package com.cclogic.security;
  */
 
 import com.cclogic.exceptions.ResourceNotFoundException;
-import com.cclogic.user.User;
 import com.cclogic.user.UserHeaderTokenData;
-import com.cclogic.user.UserService;
+import com.cclogic.user.Users;
+import com.cclogic.user.UsersService;
 import com.google.gson.Gson;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
@@ -36,10 +35,10 @@ public class TokenAuthenticationService {
     public static final String HEADER_STRING = "Authorization";
 
 
-    private static UserService instance;
+    private static UsersService instance;
 
     @Autowired
-    private UserService userService;
+    private UsersService userService;
 
     @PostConstruct
     public void init() {
@@ -52,16 +51,9 @@ public class TokenAuthenticationService {
 
         System.out.println("UserName at addAuthentication : " + username);
 
-        User user;
-        List<User> users = instance.getUserByField("emailId",username);
+        Users users = instance.getUserByEmailId(username);
 
-        if(users.size()>0){
-            user = users.get(0);
-        }else{
-            throw new ResourceNotFoundException("User not found. Try to login again");
-        }
-
-        if (user == null) {
+        if (users == null) {
             throw new ResourceNotFoundException("An unexpected exception. Try to login again");
         }
 
@@ -69,8 +61,8 @@ public class TokenAuthenticationService {
 
         HashMap<String, Object> params = new HashMap<>();
         params.put("sub", username);
-        params.put("userid", user.getId().toString());
-        params.put("role", user.getUserType());
+        params.put("userid", users.getUserId().toString());
+        params.put("role", users.getRole());
         params.put("issue", new Date(System.currentTimeMillis() / 1000));
 
         String JWT = Jwts.builder()

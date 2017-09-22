@@ -12,6 +12,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserHeaderTokenData {
-    private int Id;
+    private Integer Id;
     private String role;
 }

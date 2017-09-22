@@ -4,7 +4,8 @@ package com.cclogic.security;
  * Created by Nishant on 9/19/2017.
  */
 
-import com.cclogic.user.UserRepository;
+import com.cclogic.user.Users;
+import com.cclogic.user.UsersRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,21 +21,16 @@ import static java.util.Collections.emptyList;
 public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Autowired
-    private UserRepository userRepository;
+    private UsersRepository userRepository;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        List<com.cclogic.user.User> users = userRepository.findByEmailId(username);
+        Users users = userRepository.findByEmailId(username);
 
-        com.cclogic.user.User user = null;
-        if(users.size()>0) {
-            user = userRepository.findByEmailId(username).get(0);
-        }
-
-        if (user == null) {
+        if (users == null) {
             throw new UsernameNotFoundException(username);
         }
-        return new User(user.getEmailId(), user.getPassword(), emptyList());
+        return new User(users.getEmailId(), users.getPassword(), emptyList());
     }
 }
