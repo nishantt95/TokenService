@@ -4,6 +4,7 @@ package com.cclogic.security;
  * Created by Nishant on 9/18/2017.
  */
 
+import com.cclogic.exceptions.InvalidDataException;
 import com.cclogic.exceptions.ResourceNotFoundException;
 import com.cclogic.user.UserHeaderTokenData;
 import com.cclogic.user.Users;
@@ -29,9 +30,9 @@ import static java.util.Collections.emptyList;
 
 @Component
 public class TokenAuthenticationService {
-    private static final long ACCESS_TOKEN_EXPIRATION_TIME = 18_00_000; // 30 Minutes
+    public static final long ACCESS_TOKEN_EXPIRATION_TIME = 18_00_000; // 30 Minutes
     private static final long REFRESH_TOKEN_EXPIRATION_TIME = 12_960_000_000L; // 6 Months
-    private static final String ACCESS_TOKEN_SECRET = "ThisIsASecret";
+    public static final String ACCESS_TOKEN_SECRET = "ThisIsASecret";
     private static final String REFRESH_TOKEN_SECRET = "ThisIsASecretForRefreshToken";
     public static final String HEADER_STRING = "Authorization";
 
@@ -81,7 +82,7 @@ public class TokenAuthenticationService {
         }
     }
 
-    private static String getJWT(HashMap<String, Object> params, long expiryTime, String secret) {
+    public static String getJWT(HashMap<String, Object> params, long expiryTime, String secret) {
         return Jwts.builder()
                 .setClaims(params)
                 .setExpiration(new Date(System.currentTimeMillis() + expiryTime))
@@ -137,5 +138,34 @@ public class TokenAuthenticationService {
             return userHeaderTokenData;
         }
         return null;
+    }
+
+    public static String generateAccessTokenFromRefreshToken(String refreshToken){
+
+        if (refreshToken != null) {
+
+            HashMap<String, Object> params = new HashMap<>();
+
+            // parse the token.
+            Jws jws = Jwts.parser()
+                    .setSigningKey(REFRESH_TOKEN_SECRET)
+                    .parseClaimsJws(refreshToken);
+
+            Claims claims = (Claims) jws.getBody();
+
+            if(!claims.containsKey("sub") || !claims.containsKey("userid") || !claims.containsKey("role")){
+                throw new InvalidDataException("Invalid refresh token!");
+            }
+
+            params.put("sub",claims.get("sub"));
+            params.put("userid", claims.get("userid"));
+            params.put("role", claims.get("role"));
+
+            return getJWT(params, ACCESS_TOKEN_EXPIRATION_TIME, ACCESS_TOKEN_SECRET);
+
+        }else{
+            throw new InvalidDataException("Your refresh token is empty!");
+        }
+
     }
 }
