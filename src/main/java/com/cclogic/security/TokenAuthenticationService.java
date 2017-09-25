@@ -46,7 +46,6 @@ public class TokenAuthenticationService {
     }
 
 
-
     public static void addAuthentication(HttpServletResponse res, String username) {
 
         System.out.println("UserName at addAuthentication : " + username);
@@ -63,11 +62,11 @@ public class TokenAuthenticationService {
         params.put("sub", username);
         params.put("userid", users.getUserId().toString());
         params.put("role", users.getRole());
-        params.put("issue", new Date(System.currentTimeMillis() / 1000));
 
         String JWT = Jwts.builder()
                 .setClaims(params)
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .setIssuedAt(new Date(System.currentTimeMillis()))
                 .signWith(SignatureAlgorithm.HS512, SECRET)
                 .compact();
         res.addHeader(HEADER_STRING, JWT);
