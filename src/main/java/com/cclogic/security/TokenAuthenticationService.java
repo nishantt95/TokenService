@@ -24,14 +24,15 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 
 import static java.util.Collections.emptyList;
 
 @Component
 public class TokenAuthenticationService {
-    private static final long EXPIRATION_TIME = 864_000_000; // 10 days
-    private static final String SECRET = "ThisIsASecret";
+    private static final long ACCESS_TOKEN_EXPIRATION_TIME = 18_00_000; // 30 Minutes
+    private static final long REFRESH_TOKEN_EXPIRATION_TIME = 12_960_000_000L; // 6 Months
+    private static final String ACCESS_TOKEN_SECRET = "ThisIsASecret";
+    private static final String REFRESH_TOKEN_SECRET = "ThisIsASecretForRefreshToken";
     public static final String HEADER_STRING = "Authorization";
 
 
@@ -44,7 +45,6 @@ public class TokenAuthenticationService {
     public void init() {
         TokenAuthenticationService.instance = userService;
     }
-
 
     public static void addAuthentication(HttpServletResponse res, String username) {
 
@@ -63,16 +63,15 @@ public class TokenAuthenticationService {
         params.put("userid", users.getUserId().toString());
         params.put("role", users.getRole());
 
-        String JWT = Jwts.builder()
-                .setClaims(params)
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .signWith(SignatureAlgorithm.HS512, SECRET)
-                .compact();
-        res.addHeader(HEADER_STRING, JWT);
+        String accessJWT = getJWT(params, ACCESS_TOKEN_EXPIRATION_TIME, ACCESS_TOKEN_SECRET);
+        String refreshJWT = getJWT(params, REFRESH_TOKEN_EXPIRATION_TIME, REFRESH_TOKEN_SECRET);
+
+        res.addHeader(HEADER_STRING, accessJWT);
 
         HashMap<String, String> responseData = new HashMap<>();
         responseData.put("message", "Login Successful");
+        responseData.put("accessToken", accessJWT);
+        responseData.put("refreshToken", refreshJWT);
 
 
         try {
@@ -80,7 +79,15 @@ public class TokenAuthenticationService {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
 
+    private static String getJWT(HashMap<String, Object> params, long expiryTime, String secret) {
+        return Jwts.builder()
+                .setClaims(params)
+                .setExpiration(new Date(System.currentTimeMillis() + expiryTime))
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .signWith(SignatureAlgorithm.HS512, secret)
+                .compact();
     }
 
     public static Authentication getAuthentication(HttpServletRequest request) {
@@ -88,7 +95,7 @@ public class TokenAuthenticationService {
         if (token != null) {
             // parse the token.
             Jws jws = Jwts.parser()
-                    .setSigningKey(SECRET)
+                    .setSigningKey(ACCESS_TOKEN_SECRET)
                     .parseClaimsJws(token);
 
             Claims claims = (Claims) jws.getBody();
@@ -108,7 +115,7 @@ public class TokenAuthenticationService {
         if (token != null) {
             // parse the token.
             Jws jws = Jwts.parser()
-                    .setSigningKey(SECRET)
+                    .setSigningKey(ACCESS_TOKEN_SECRET)
                     .parseClaimsJws(token);
 
             Claims claims = (Claims) jws.getBody();

@@ -9,7 +9,7 @@ import java.util.List;
 public class UsersService {
 
     @Autowired
-    UsersRepository usersRepository;
+    private UsersRepository usersRepository;
 
     public List<Users> getUsers(){
         return usersRepository.findAll();
